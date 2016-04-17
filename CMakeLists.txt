@@ -5,6 +5,7 @@ project(balance_bot)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+    roscpp
 )
 
 set(CMAKE_CXX_FLAGS "-g -std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
