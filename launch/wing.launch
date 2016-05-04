@@ -1,0 +1,3 @@
+<launch>
+ <node name="control" pkg="balance_bot" type="control_node" required="true" output="screen" />
+</launch>
