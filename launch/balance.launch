@@ -2,7 +2,7 @@
     <node name="dynamixel_manager"
           pkg="dynamixel_controllers"
           type="controller_manager.py"
-          required="true" output="screen">
+          required="false" output="screen">
           
         <rosparam>
             namespace: dxl_manager
@@ -15,6 +15,8 @@
                     update_rate: 20
         </rosparam>
     </node>
+
+    <node name="ardupilot" pkg="balance_bot" type="ardupilot" />
 
     <!-- Start pan joint controller -->
     <rosparam file="/home/pi/catkin_ws/src/BalanceBot/launch/tilt1.yaml" command="load"/>
@@ -40,5 +42,5 @@
                 pan_controller3"
           output="screen"/>
           
- <!--   <node name="control" pkg="balance_bot" type="control_node" required="true" output="screen" /> -->
+    <node name="control" pkg="balance_bot" type="control_node" required="true" output="screen" />
 </launch>

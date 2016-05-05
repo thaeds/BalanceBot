@@ -7,6 +7,8 @@ project(balance_bot)
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     std_msgs
+    sensor_msgs
+    tf
 )
 
 set(CMAKE_CXX_FLAGS "-g -std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
@@ -189,3 +191,5 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_subdirectory(src/Control)
+add_subdirectory(src/ardupilot)
+#add_subdirectory(src/imu-utils)

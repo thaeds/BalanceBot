@@ -1,0 +1,5 @@
+add_library(SerialPort SerialPort.cpp)
+target_link_libraries(SerialPort ${Boost_LIBRARIES})
+FILE(GLOB ardupilo_files "*.cpp" "*.h")
+add_executable(ardupilot ${ardupilo_files})
+target_link_libraries(ardupilot ${catkin_LIBRARIES} SerialPort)

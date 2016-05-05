@@ -17,10 +17,10 @@ int main(int argc, char** argv)
     WingIO wingio(control_nh);
 
     // Main control loop command loop
-    // ros::spin();
+    ros::spin();
     std::cout << "Ros WING enabled use wasd for translation and qe for rotation and i to read accelerometer information." << std::endl;
     char in_command;
-    while(1){
+    while(0){
 	    std::cout << "Golem Wing Waiting For Input" << std::endl;
 	    std::cin >> in_command;
 	    switch (in_command) {
