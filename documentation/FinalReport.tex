@@ -107,7 +107,12 @@ Although The I2C bus was compatible with the Gyroscope 9-DoF stick solution we m
 Finally we opted for an Ardupilot that was pluggable into a USB port because there was a a library available that integrated well with our software stack.\par
 \subsection{Mechanical} %alex
 \label{sec:mechanical}
-% Just two iterations really. Getting the wheels attached, adding the training wheel and then removing it.
+
+While many of the projects physical pieces were supplied by the sponsoring lab, a number of repairs and modifications were required. The robot initially only came with two motors, which were only partially mounted to the three supplied wheels. After researching supply options for a third motor, it was determined that mixing and matching motors and controller types was unfeasible. Luckily the sponsoring lab was able to supply another functional motor.
+
+The motors' shafts were originally affixed to a proprietary attachment plate, which was bolted to a thick aluminum spacer, with pins extending from it, loosely fitting into radial slots to turn the wheel shaft. Unfortunately, there were only two of these plates, and the pins transferring power from the motors to the wheels created roughly 10 degrees of play in the system. The play was removed from the system, and the third wheel was attached by tightly bolting small spacers to the attachment plate. The bolt heads fit in the wheel's radial slots without play, and removed the requirement of the missing attachment plates.
+
+While basic controls were being implemented, the Golem Wing was not yet able to balance. To allow for testing of the motors and control systems, a caster wheel was attached to the back of the robot, allowing it to remain upright naturally, even while in motion. To attach the caster wheel a plywood plank was cut on a bandsaw, holes were drilled, and it was mounted on top of the wing and cantilevered behind using zip ties. A cylindrical wooden rod was cut to the height of the robot and drilled into from one end. The caster wheel was screwed into this end, and the other end was cut at an angle and nailed to the plywood board to allow the caster to rotate freely about the vertical shaft while the robot leaned backwards, supported by it. Finally, when the control algorithms were complete, the caster wheel was removed, allowing the robot to intelligently balance unsupported.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{motor2bearing.jpg}
@@ -125,9 +130,28 @@ Finally we opted for an Ardupilot that was pluggable into a USB port because the
 
 \subsection{ROS Application Architecture} % Alex
 \label{sec:ros-appl-arch}
+In order to efficiently interface with the numerous electronic devices tested and the ones eventually used in the final design, it was determined that the final project should be implemented in ROS (Robot Operating System). At its core, ROS has the goal of reducing the work required to implement robotics projects through code reuse and modularization, supported by a robust message passing system. For an overview of the architecture as implemented, please refer to the figure below.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{rosarcitecture.jpg}
+  \caption{High Level Architecture of the ROS Project.}
+  \label{fig:ROSArchitecture}
+\end{figure}
+
+Open source software was available for the Dynamixel motors, allowing us to simply install the Dynamixel ros node package, and start a Dynamixel node in our ros project for each of the three Dynamixel motors. The motors were controlled by issuing velocities through the ros topic system with our control node through the \text{$pan_controllerX command$} topic, where X is the motor ID.
+
+An open source ros node was also available to manage communications with the ardupilot 9 DOF IMU. This node communicated with the Ardupilot IMU over a serial port, receiving serial data and constructing and publishing a ros $sensor_msgs/IMU message$. This message contains a lot of pose information, including orientations, which were used to inform the control node and maintain stability, as described in the Controls section below.
+
+The control node was written entirely by us. It subscribed to the $/imu$ topic published by the ardupilot node, and published motor commands to the $/pan_controllerX/command$ topic. The control scheme will be detailed below, but the goal of this node is simply to send the motors commands to maintain balance.
+
 
 \subsection{Controls} % Controls
 \label{sec:controls}
+The ROS node written for controlling the motion of the balance bot used a fairly simple PID control scheme. The PID control scheme records a single pitch orientation angle as the command angle, and then measures the current pitch angle and sends commands to motors in an attempt to achieve the commanded angle. The new signal at each time point is a combination of the P, I and D gains, and the current and previous errors observed.
+
+For our robot, the best stability was found when P ~100 D~-1000 I~.09.
+
 % Perhaps talk a b it about our investigation into the controller of the robot, specifically the iteresting soloutions we found for the IK that we implemented for our first presentation and then why we couldn't easily aggregate them into the final controller.
 
 
@@ -163,3 +187,4 @@ We also performed stress tests on this control loop. Under some configurations w
 \pagebreak
 \printbibliography{}
 \end{document}
+
