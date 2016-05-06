@@ -15,14 +15,16 @@
 \usepackage[backend=biber]{biblatex}
 \usepackage{hyperref}
 \usepackage{cleveref}
-%Include packages for line spacing
+
+% Include packages for line spacing
 \usepackage{setspace}
 \usepackage{parskip}
 \usepackage{indentfirst}
 \usepackage{verbatim}
 \usepackage{adjustbox}
 \usepackage{listings}
-\usepackage{subfigure}
+% \usepackage{subfigure}          
+\usepackage{subcaption}
 \usepackage[T1]{fontenc}
 \usepackage[scaled]{beramono}
 \newcommand\Small{\fontsize{9}{9.2}\selectfont}
@@ -81,32 +83,81 @@ Date Submitted: \today \\}
 \section{Overview}
 \label{sec:overview}
 %General Stuff
-
+The Golem Wing was originally invented by Saul Reynolds in collaboration with Mike Stilman. The idea was to have a balancing holonomic robot that would be able move in any orientation and direction in the plane as well as stay upright for future purposes of manipulation. After attempting to balance using an external computer for controls the project was abandoned and left to gather dust for years in the IRIM lab.\par
+Today we present a revival of this project where we try to recreate and improve on their previous achievements with a modern embedded Linux system: the Raspberry Pi. On-boarding the computer paves the way for fully tether-free performance as well as a tighter control loop necessary for maintaining the robot balanced.\par
 \section{Hardware}
 \label{sec:hardware}
 %General Introduction to all the physical stuff we had to do to get the GOLEM Wing back working
 \subsection{Electrical}
 \label{sec:electrical}
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{cables.jpg}
+  \caption{Internal electrical connections of the current iteration of the Golem Wing. You can see from left to right the Dynamixel Dongle, the Dynamixel DC power sourcde and the raspberry PI. On the bottom you can see the current connection between the dongle, the motors and the power souce. For illustrative purposes you can see the Dynamixel Dongle's VC cable cut.}
+  \label{fig:cables}
+\end{figure}
 %The Iterations of connecting stuff. We should describe the iterative process of finding a better and better way to connect everything and make sure had a hardware stack comaptible with our software
-\subsection{Mechanical}
+Once our robot had mounted motors it needed an embedded micro-controller to drive them and to read sensor values. The final solution would have to aggregate a gyroscope, an accelerometer and a send commands to three motors in series.\par
+The RX-24F motors connect with a 4 pin connector that has a ground, source and an RS485 bus. On top of the bus the motors require a custom proprietary package format in order to communicate with the motors.\par
+Although the option of using the Teensy was thoroughly investiaged, the team opted for going with a different alternative. Using the Teensy would have required us to debug a packet protocol and a bus protocol at the same time without much feedback to determine what is wrong other than an oscilloscope. Although possible, it was outside the scope of time granted to complete the project. \par
+Instead we opted for a Raspberry Pi which could run a ROS node that we knew could communicate with the motors. We tried using a Raspberry 2 but the required package was incompatible with the latest version of raspbian compatible with that machine. Since installation on the Raspberry Pi 2 was impossible we moved to a Raspberry Pi 3 which did support the required OS.\par
+This was using a proprietary USB Dongle that translated form a USB serial connection to RS485. Since the Dongle and Raspberry cannot supply enough current to move all three motors we had to purchase a separate power supply. Our final solution involved connecting the power supply's ground and power to the ground and power of the motors, and the ground of the dongle. We passed through the Bus from the dongle to the motors and cut the source that came from the dongle from  the system. It was necessary to connect all grounds in order to ensure the that the BUS worked correctly.\par
+With a suitable micro-controller we moved to connecting the desired sensor. We had to decide on the exact location since we had to choose between the top and bottom of the robot. We decided to to place the sensors as high on the robot as possible to increase sensitivity of the sensor. We worked at first with the ADXL345 accelerometer through the I2C bus.\par
+Although The I2C bus was compatible with the Gyroscope 9-DoF stick solution we moved away from that because of a lack of libraries in the PI to read the values off the Gyroscope. This is because a Gyroscope needs to aggregate an accelerometer in order to avoid drift as well as translate the internal measurement to a meaningfull unit. Without a library to do those two things for us, completing the project in time would have been unrealistic. \par
+Finally we opted for an Ardupilot that was pluggable into a USB port because there was a a library available that integrated well with our software stack.\par
+\subsection{Mechanical} %alex
 \label{sec:mechanical}
-%Just two iterations really. Getting the wheels attached, adding the training wheel and then removing it.
+% Just two iterations really. Getting the wheels attached, adding the training wheel and then removing it.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{motor2bearing.jpg}
+  \caption{Connection we built between the motor and the bearings.}
+  \label{fig:motor2bearing}
+\end{figure}
+
 \section{Software}
 \label{sec:software}
+% 
 
 \subsection{Previous Iterations}
 \label{sec:previous-iterations}
-                                % Talk about the previous ROS nodes for the accelerometer and any other thing we made but discarded
+% Talk about the previous ROS nodes for the accelerometer and any other thing we made but discarded
 
-\subsection{ROS Application Architecture}
+\subsection{ROS Application Architecture} % Alex
 \label{sec:ros-appl-arch}
 
-\subsection{Controls}
+\subsection{Controls} % Controls
 \label{sec:controls}
 % Perhaps talk a b it about our investigation into the controller of the robot, specifically the iteresting soloutions we found for the IK that we implemented for our first presentation and then why we couldn't easily aggregate them into the final controller.
+
+
 \section{Results}
 \label{sec:results}
 % A picture of the robot balancing. Maybe even a set of pictures showing how it balanced even though we kicked it. Explain why we got the results we got especially the instabilities and the reason it oscillated. 
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{2016-05-05_04_21_25.jpg}
+  \caption{The Balancing Golem Wing}
+  \label{fig:balancing}
+\end{figure}
+In the end our software and hardware stack managed to balance the robot albeit with some oscillation caused by the controller. Although we tried a wide range of parameters for our PID controller, the robot continued to oscillate even in the most stable configurations. We can attribute this to the exceedingly low center of mass of the robot. Even with a fast control loop the wheels are unable to keep it stable without oscillation.\par
+We also performed stress tests on this control loop. Under some configurations we managed to obtain good recovery after perturbation of the system but it didn't always recover. The Golem Wing remains fairly unstable by design and thus an interesting control problem.\par
+
+\begin{figure}
+  \centering
+  \begin{subfigure}{0.3\textwidth}
+    \includegraphics[width=\textwidth]{getting_kicked.png}
+  \end{subfigure}
+  \begin{subfigure}{0.3\textwidth}
+        \includegraphics[width=\textwidth]{recovery.png}
+  \end{subfigure}
+  \begin{subfigure}{0.3\textwidth}
+        \includegraphics[width=\textwidth]{recovered.png}
+  \end{subfigure} 
+  \caption{Perturbation and recovery}
+  \label{fig:pertandrec}
+\end{figure}
+ 
 
 
 \pagebreak
